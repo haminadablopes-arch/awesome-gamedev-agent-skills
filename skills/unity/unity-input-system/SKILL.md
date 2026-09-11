@@ -1,17 +1,18 @@
 ---
 name: unity-input-system
 description: >
-  Wire player input in Unity 6.3 LTS with the Input System package: Input Actions, action maps,
-  the PlayerInput component, and reading values via callbacks or polling. Use when the
-  project has a .inputactions asset or com.unity.inputsystem, or when the user mentions the
-  Unity Input System, InputAction, action maps, PlayerInput, control schemes, or rebinding.
+  Wire player input in Unity 6 (6.3 LTS / 6.6 / 6.7 Ready) with the modern Input System
+  package: Input Actions, action maps, the PlayerInput component, and reading values
+  via callbacks or polling. Use when the project has a .inputactions asset or
+  com.unity.inputsystem, or when the user mentions the Unity Input System, InputAction,
+  action maps, PlayerInput, control schemes, or rebinding.
 ---
 
 # Unity Input System (new)
 
 Read input through Unity's **Input System package** (`com.unity.inputsystem`, 1.x) —
-action-based, device-agnostic, rebindable. Targets **Unity 6.3 LTS**. This is the modern
-replacement for the legacy `Input.GetAxis`/`Input.GetKey` Input Manager.
+action-based, device-agnostic, rebindable. Targets **Unity 6 (6.3 LTS / 6.6 / 6.7 Ready)**.
+This is the modern standard replacing the legacy `Input.GetAxis`/`Input.GetKey` manager.
 
 ## When to use
 
@@ -28,7 +29,7 @@ replacement for the legacy `Input.GetAxis`/`Input.GetKey` Input Manager.
 ## Core workflow
 
 1. **Check Active Input Handling** (Project Settings → Player). The package only receives
-   input when this is `Input System Package (New)` or `Both`. `Both` is required if any old
+   input when this is `Input System Package (New)` or `Both`. `Both` is required if any legacy
    `Input.GetAxis` code remains.
 2. **Create an `.inputactions` asset.** Add an *action map* (e.g. `Gameplay`), add *actions*
    (`Move` = Value/Vector2, `Jump` = Button, `Fire` = Button), and bind them to controls and

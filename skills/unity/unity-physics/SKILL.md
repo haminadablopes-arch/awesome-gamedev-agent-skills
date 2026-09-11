@@ -1,20 +1,22 @@
 ---
 name: unity-physics
 description: >
-  Set up 3D physics in Unity 6.3 LTS: Rigidbody movement and forces, colliders, triggers vs
-  collisions, layer-based collision, raycasts, and joints. Use when adding a Rigidbody,
-  handling OnCollisionEnter/OnTriggerEnter, tuning collision layers, casting rays, or when
-  the user mentions Unity physics, AddForce, isKinematic, or linearVelocity.
+  Set up 3D physics in Unity 6 (6.3 LTS / 6.6 / 6.7 Ready): Rigidbody movement and
+  forces, linearVelocity/angularVelocity, colliders, triggers vs collisions, layer-based
+  collision matrix, raycasts, and joints. Use when adding physical simulation, handling
+  OnCollisionEnter/OnTriggerEnter, tuning collision layers, casting rays, or when the user
+  mentions Unity physics, AddForce, isKinematic, or linearVelocity.
 ---
 
 # Unity Physics (Rigidbody / PhysX)
 
-Make objects move, collide, and detect each other with Unity 6.3 LTS's built-in 3D physics
+Make objects move, collide, and detect each other with Unity 6's built-in 3D physics
 (PhysX). Get the `FixedUpdate` discipline, trigger-vs-collision rules, and collision layers
-right. Targets **Unity 6.3 LTS (6000.3)**.
+right. Targets **Unity 6 (6.3 LTS / 6.6 / 6.7 Ready)**.
 
-> **Unity 6.3 LTS rename:** `Rigidbody.velocity` is now **`Rigidbody.linearVelocity`** (the old
-> name is deprecated). Code copied from older tutorials will warn or fail to compile.
+> **Unity 6 rename reminder:** `Rigidbody.velocity` is **`Rigidbody.linearVelocity`** and
+> `Rigidbody.angularVelocity` is preserved (the legacy `velocity` property is deprecated). Code copied
+> from older tutorials will warn or fail to compile.
 
 ## When to use
 
@@ -41,7 +43,7 @@ concepts but the types differ. Cross-engine *feel* tuning (timestep, jitter, tun
 5. **Organise interactions with layers.** Put objects on layers and edit the Layer Collision
    Matrix (Project Settings → Physics) so unrelated things don't test against each other.
 6. **Verify** with the Physics Debugger (Window → Analysis → Physics Debugger) and by watching
-   for jitter; if fast objects pass through walls, raise Collision Detection mode.
+   for jitter; if fast objects pass through walls, raise Collision Detection mode to Continuous.
 
 ## Patterns
 
@@ -62,7 +64,7 @@ public class Mover : MonoBehaviour
     private void FixedUpdate()
     {
         _rb.AddForce(_input * accel, ForceMode.Acceleration);     // mass-independent accel
-        // Unity 6.3 LTS: linearVelocity (was 'velocity'). Clamp horizontal speed.
+        // Unity 6: linearVelocity (replaces deprecated 'velocity'). Clamp horizontal speed.
         Vector3 flat = new(_rb.linearVelocity.x, 0, _rb.linearVelocity.z);
         if (flat.magnitude > maxSpeed)
         {
@@ -115,8 +117,8 @@ private void FixedUpdate() => _rb.MovePosition(_rb.position + Vector3.right * (2
 
 ## Pitfalls
 
-- **`Rigidbody.velocity` doesn't exist in Unity 6.3 LTS** — use `linearVelocity` (and
-  `angularVelocity` is unchanged).
+- **`Rigidbody.velocity` is deprecated in Unity 6** — use `linearVelocity` (and
+  `angularVelocity`).
 - **Setting `transform.position` on a dynamic Rigidbody** — teleports it, skips collision.
   Use `MovePosition` (kinematic/interpolated) or apply forces.
 - **Applying forces in `Update`** — frame-rate-dependent and jittery. Physics goes in

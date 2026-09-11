@@ -1,16 +1,17 @@
 ---
 name: unity-animation
 description: >
-  Drive Unity 6.3 LTS character animation with Animator Controllers: states, transitions,
-  parameters, blend trees, animation layers, and humanoid Avatar IK. Use when wiring an
-  Animator, setting parameters from script (SetFloat/SetBool/SetTrigger), building blend
-  trees, or when the user mentions Animator, Mecanim, state machine, blend tree, or .controller.
+  Drive Unity 6 (6.3 LTS / 6.6 / 6.7 Ready) character animation with Animator Controllers:
+  states, transitions, parameters, blend trees, animation layers, and humanoid Avatar IK.
+  Use when wiring an Animator, setting parameters from script (SetFloat/SetBool/SetTrigger),
+  building blend trees, or when the user mentions Animator, Mecanim, state machine, blend tree,
+  or .controller.
 ---
 
 # Unity Animation (Animator / Mecanim)
 
-Control animation state with Unity 6.3 LTS's `Animator` and Animator Controllers: parameters,
-transitions, blend trees, layers, and humanoid IK. Targets **Unity 6.3 LTS (6000.3)**.
+Control animation state with Unity 6's `Animator` and Animator Controllers: parameters,
+transitions, blend trees, layers, and humanoid IK. Targets **Unity 6 (6.3 LTS / 6.6 / 6.7 Ready)**.
 
 ## When to use
 

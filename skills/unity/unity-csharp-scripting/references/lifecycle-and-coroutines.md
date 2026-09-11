@@ -1,8 +1,8 @@
-# MonoBehaviour lifecycle & coroutines (Unity 6.3 LTS)
+# MonoBehaviour lifecycle & coroutines (Unity 6.3 LTS / 6.6 / 6.7)
 
-Depth for the `unity-csharp-scripting` skill: the full execution order and the coroutine
-patterns that don't fit in the main playbook. Verified against the Unity Manual
-"Event function execution order" page and `ScriptReference/MonoBehaviour`.
+Depth for the `unity-csharp-scripting` skill: the full execution order, Fast Enter Play Mode
+domain reload reset strategies, and coroutine patterns. Verified against the Unity Manual
+"Event function execution order" and "Configuring Enter Play Mode".
 
 ## Execution order (the parts that matter for gameplay)
 
@@ -13,11 +13,11 @@ Per object, the engine calls these in this order:
 | Load | `Awake` | once, when the object loads (even if disabled) | cache `GetComponent`, set up self |
 | Enable | `OnEnable` | each time the object/script enables | subscribe to events, re-arm coroutines |
 | Init | `Start` | once, before first `Update`, after every `Awake` | wiring that depends on other objects |
-| Physics | `FixedUpdate` | every fixed step (default 0.02s) | rigidbody forces, `MovePosition` |
+| Physics | `FixedUpdate` | every fixed step (default 0.02s) | rigidbody forces, `MovePosition`, `linearVelocity` |
 | Physics | `OnTriggerXXX` / `OnCollisionXXX` | during the physics step | collision/trigger response |
 | Frame | `Update` | once per rendered frame | input polling, non-physics logic |
 | Frame | `LateUpdate` | once per frame, after all `Update`s | camera follow, IK fix-up |
-| Disable | `OnDisable` | each time the object/script disables | unsubscribe from events |
+| Disable | `OnDisable` | each time the object/script disables | unsubscribe from events, stop handles |
 | Teardown | `OnDestroy` | once, when destroyed | release native handles, save |
 
 Key consequences:
@@ -28,6 +28,36 @@ Key consequences:
   undefined unless you set a Script Execution Order in Project Settings.
 - `OnEnable` runs after `Awake` on first enable, then again on every re-enable. Pair every
   `OnEnable` subscription with an `OnDisable` unsubscription to avoid duplicate handlers.
+
+---
+
+## Fast Enter Play Mode & Static Cleanup (Unity 6.6+)
+
+When Enter Play Mode Options have **Reload Domain** unchecked (default in Unity 6.6+ for high-speed
+iteration), static fields and static event subscriptions do NOT reset automatically when stopping
+and restarting Play mode.
+
+### Subsystem Registration Reset Pattern
+
+```csharp
+using System;
+using UnityEngine;
+
+public class EventHub
+{
+    public static event Action<string> OnGameNotification;
+    public static int ActivePlayersCount { get; set; }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticState()
+    {
+        OnGameNotification = null;
+        ActivePlayersCount = 0;
+    }
+}
+```
+
+---
 
 ## Coroutine yield instructions
 

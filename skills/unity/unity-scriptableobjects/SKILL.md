@@ -1,17 +1,18 @@
 ---
 name: unity-scriptableobjects
 description: >
-  Architect Unity 6.3 LTS data and decoupling with ScriptableObjects: config/data assets, shared
-  runtime variables, event channels, and runtime sets/registries. Use when designing
-  data-driven systems, replacing singletons/managers, creating .asset data with
-  CreateAssetMenu, or when the user mentions ScriptableObject, SO architecture, or data assets.
+  Architect Unity 6 (6.3 LTS / 6.6 / 6.7 Ready) data and decoupling with ScriptableObjects:
+  config/data assets, native Dictionary data, shared runtime variables, event channels,
+  and Fast Enter Play Mode reset safety. Use when designing data-driven systems, replacing
+  singletons/managers, creating .asset data with CreateAssetMenu, or when the user mentions
+  ScriptableObject, SO architecture, or data assets.
 ---
 
 # Unity ScriptableObject Architecture
 
-Use `ScriptableObject` assets to store shared data and decouple systems in Unity 6.3 LTS —
-configuration, event channels, and registries that live as project assets instead of being
-hard-wired into scenes or singletons. Targets **Unity 6.3 LTS (6000.3)**.
+Use `ScriptableObject` assets to store shared data and decouple systems in Unity 6 —
+configuration, native dictionary collections, event channels, and registries that live as project
+assets instead of being hard-wired into scenes or singletons. Targets **Unity 6 (6.3 LTS / 6.6 / 6.7 Ready)**.
 
 ## When to use
 
@@ -36,16 +37,16 @@ player progress to disk → `save-systems`. Plain DTOs that never need to be an 
 4. **For decoupling**, model _signals_ and _shared variables_ as ScriptableObjects: a
    "FloatVariable" the HUD reads and the player writes; an "event channel" the player raises
    and many systems listen to. Neither side references the other.
-5. **Reset runtime mutations** in `OnEnable` if the asset is mutated during play, because edits
-   made in the Editor at runtime persist on the asset (a frequent source of "my values
-   changed after I played").
+5. **Handle Fast Enter Play Mode safely**: because domain reload is skipped by default in Unity 6.6+,
+   never rely on static variables inside ScriptableObjects without explicit reset methods.
 6. **Verify** by inspecting the asset values during Play mode and confirming consumers react.
 
 ## Patterns
 
-### 1. Config/data asset
+### 1. Config/data asset with native Dictionary (Unity 6.6+)
 
 ```csharp
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "WeaponData", menuName = "Game/Weapon Data", order = 0)]
@@ -55,6 +56,14 @@ public class WeaponData : ScriptableObject
     public int    damage = 10;
     public float  fireRate = 0.25f;
     public GameObject projectilePrefab;
+
+    // Native Dictionary serialization in Unity 6.6+
+    [SerializeField] private Dictionary<string, float> elementalMultipliers = new()
+    {
+        { "fire", 1.5f },
+        { "ice", 0.8f },
+        { "lightning", 1.0f }
+    };
 }
 ```
 
@@ -95,11 +104,11 @@ temp.damage = 25;
   changed on the asset after you stop. Keep mutable runtime state in `[NonSerialized]` fields
   reset in `OnEnable`, or it will surprise you. (In a _build_, asset edits do not persist
   across launches.)
-- **Disabled Domain Reload skips your `OnEnable` reset** — with **Enter Play Mode Options**
-  enabled and **Reload Domain** off (a Unity 6.3 LTS fast-iteration setting), already-loaded SOs are
+- **Disabled Domain Reload skips your `OnEnable` reset** — with **Fast Enter Play Mode**
+  (Enter Play Mode Options enabled and Reload Domain off), already-loaded SOs are
   _not_ re-created when you press Play, so `OnEnable` never fires and `runtimeValue` keeps its
-  value from the previous session. Reset explicitly from an `ISerializationCallbackReceiver` or
-  a scene-load hook instead of relying on `OnEnable` alone.
+  value from the previous session. Reset explicitly from a runtime initialization hook or
+  scene-load manager.
 - **Expecting per-object state** — every reference points to the _same_ asset. If two enemies
   need different current HP, store HP on the MonoBehaviour, not the shared SO.
 - **No frame lifecycle** — ScriptableObjects have `OnEnable`/`OnDisable`/`OnDestroy` but no
