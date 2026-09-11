@@ -1,21 +1,22 @@
 ---
 name: unity-navmesh
 description: >
-  Add AI navigation in Unity 6.3 LTS: bake a NavMesh with the AI Navigation package (NavMeshSurface),
-  move agents with NavMeshAgent.SetDestination, and handle dynamic obstacles. Use when setting
-  up pathfinding, making an enemy chase the player, baking navigation, or when the user
-  mentions NavMesh, NavMeshAgent, NavMeshSurface, NavMeshObstacle, or Unity pathfinding.
+  Add AI navigation in Unity 6 (6.3 LTS / 6.6 / 6.7 Ready): bake a NavMesh with the
+  AI Navigation package (NavMeshSurface), move agents with NavMeshAgent.SetDestination,
+  and handle dynamic obstacles. Use when setting up pathfinding, making an enemy chase
+  the player, baking navigation, or when the user mentions NavMesh, NavMeshAgent,
+  NavMeshSurface, NavMeshObstacle, or Unity pathfinding.
 ---
 
 # Unity NavMesh (AI Navigation)
 
-Give NPCs pathfinding in Unity 6.3 LTS: bake walkable surfaces and move agents around obstacles.
-Targets **Unity 6.3 LTS (6000.3)** with the **AI Navigation package 2.x**.
+Give NPCs pathfinding in Unity 6: bake walkable surfaces and move agents around obstacles.
+Targets **Unity 6 (6.3 LTS / 6.6 / 6.7 Ready)** with the **AI Navigation package 2.x**.
 
-> **Version trap (Unity 2022+/6):** the old built-in **Navigation window** (Object/Bake tabs)
-> is gone. Baking is now **component-based** via the **AI Navigation package**
-> (`com.unity.ai.navigation`): add a **NavMeshSurface** to your level geometry and click
-> **Bake**. The *runtime* `NavMeshAgent`/`NavMesh` API stays in built-in `UnityEngine.AI`.
+> **Version architecture (Unity 6):** the old built-in **Navigation window** (Object/Bake tabs)
+> is replaced by component-based baking via the **AI Navigation package** (`com.unity.ai.navigation`):
+> add a **NavMeshSurface** to level geometry and click **Bake**. The *runtime*
+> `NavMeshAgent`/`NavMesh` API lives in built-in `UnityEngine.AI`.
 
 ## When to use
 
@@ -104,8 +105,8 @@ public void RebuildNav() => surface.BuildNavMesh();
 
 ## Pitfalls
 
-- **Looking for the Navigation window** — it no longer exists in Unity 6. Use the AI Navigation
-  package's `NavMeshSurface` component + Bake.
+- **Looking for legacy Navigation window** — baking is component-based in Unity 6. Use the AI
+  Navigation package's `NavMeshSurface` component + Bake.
 - **Agent doesn't move / warps to origin** — it isn't on the baked mesh, or no surface was
   baked. Bake the surface and spawn the agent on it (`NavMesh.SamplePosition` to snap).
 - **Agent ignores new geometry** — the navmesh is baked; runtime-spawned obstacles need a

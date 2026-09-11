@@ -1,21 +1,22 @@
-# CI / headless build script (Unity 6.3 LTS)
+# CI / headless build script (Unity 6.3 LTS / 6.6 / 6.7)
 
-Depth for `unity-build-pipeline`: a reusable editor build script that takes command-line
-arguments, switches platform, stamps a version, and returns a proper exit code. Verified
-against `ScriptReference/BuildPipeline.BuildPlayer` and the editor command-line arguments.
+Depth for `unity-build-pipeline`: a reusable editor build script that handles command-line
+arguments, target platform switching, version stamping, Content Directories / Addressables
+builds, and exit codes for CI runners.
 
-## A parameterised build method
+## Multi-Platform CI Build Script
 
 ```csharp
 using System;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEngine;
 
 public static class CIBuild
 {
-    // Invoke with: -executeMethod CIBuild.Run -buildTarget Win64 -out Builds/Game.exe -version 1.2.3
+    // Invoke with: Unity -batchmode -quit -nographics -executeMethod CIBuild.Run -buildTarget Win64 -out Builds/Game.exe -version 1.0.4
     public static void Run()
     {
         string[] args = Environment.GetCommandLineArgs();
@@ -24,28 +25,46 @@ public static class CIBuild
         string outPath   = ArgValue(args, "-out", "Builds/Game.exe");
         string version   = ArgValue(args, "-version", PlayerSettings.bundleVersion);
         bool   dev       = args.Contains("-dev");
+        bool   buildAddr = args.Contains("-buildContent");
 
         BuildTarget target = targetArg switch
         {
-            "Win64" => BuildTarget.StandaloneWindows64,
-            "Mac"   => BuildTarget.StandaloneOSX,
-            "Linux" => BuildTarget.StandaloneLinux64,
+            "Win64"   => BuildTarget.StandaloneWindows64,
+            "Mac"     => BuildTarget.StandaloneOSX,
+            "Linux"   => BuildTarget.StandaloneLinux64,
             "Android" => BuildTarget.Android,
-            _ => throw new ArgumentException($"Unknown -buildTarget {targetArg}")
+            "iOS"     => BuildTarget.iOS,
+            _ => throw new ArgumentException($"Unsupported build target: {targetArg}")
         };
 
-        // Switch the active target so the right platform defines/assets are used.
-        EditorUserBuildSettings.SwitchActiveBuildTarget(
-            BuildPipeline.GetBuildTargetGroup(target), target);
+        // Switch active build target if necessary
+        BuildTargetGroup group = BuildPipeline.GetBuildTargetGroup(target);
+        if (EditorUserBuildSettings.activeBuildTarget != target)
+        {
+            EditorUserBuildSettings.SwitchActiveBuildTarget(group, target);
+        }
 
-        PlayerSettings.bundleVersion = version;   // stamp the version into the player
+        PlayerSettings.bundleVersion = version;
+
+        // Build Addressables / Content Directories if requested
+        if (buildAddr)
+        {
+            Debug.Log("[CIBuild] Building Addressables / Content Directories...");
+            AddressableAssetSettings.BuildPlayerContent(out var addrResult);
+            if (!string.IsNullOrEmpty(addrResult.Error))
+            {
+                Debug.LogError($"[CIBuild] Addressables content build failed: {addrResult.Error}");
+                EditorApplication.Exit(1);
+                return;
+            }
+        }
 
         var options = new BuildPlayerOptions
         {
             scenes = EnabledScenes(),
             locationPathName = outPath,
             target = target,
-            options = dev ? BuildOptions.Development : BuildOptions.None,
+            options = dev ? (BuildOptions.Development | BuildOptions.AllowDebugging) : BuildOptions.None,
         };
 
         BuildReport report = BuildPipeline.BuildPlayer(options);
@@ -53,13 +72,13 @@ public static class CIBuild
 
         if (s.result == BuildResult.Succeeded)
         {
-            Debug.Log($"[CIBuild] OK {version} -> {outPath} ({s.totalSize} bytes)");
-            EditorApplication.Exit(0);            // explicit success exit code for CI
+            Debug.Log($"[CIBuild] SUCCESS: Version {version} -> {outPath} ({s.totalSize} bytes in {s.totalTime.TotalSeconds:F1}s)");
+            EditorApplication.Exit(0);
         }
         else
         {
-            Debug.LogError($"[CIBuild] FAILED: {s.totalErrors} errors, result={s.result}");
-            EditorApplication.Exit(1);            // non-zero fails the pipeline
+            Debug.LogError($"[CIBuild] FAILED: {s.totalErrors} errors, status={s.result}");
+            EditorApplication.Exit(1);
         }
     }
 
@@ -74,42 +93,21 @@ public static class CIBuild
 }
 ```
 
-## Invoking from CI
+## CI Shell Runner Example
 
 ```bash
-# Use -quit so the editor exits; the method itself also calls EditorApplication.Exit for clarity.
-Unity -batchmode -nographics \
+#!/usr/bin/env bash
+set -eo pipefail
+
+echo "==> Starting Unity automated build..."
+Unity -batchmode -quit -nographics \
   -projectPath "$CI_PROJECT_DIR" \
   -executeMethod CIBuild.Run \
-  -buildTarget Win64 -out "Builds/Win/Game.exe" -version "1.2.$BUILD_NUMBER" \
-  -logFile - || exit 1
+  -buildTarget Win64 \
+  -out "Builds/Win64/Game.exe" \
+  -version "1.0.$BUILD_NUMBER" \
+  -buildContent \
+  -logFile -
+
+echo "==> Build finished successfully."
 ```
-
-- Pipe `-logFile -` to stdout so the CI captures the Unity log.
-- `EditorApplication.Exit(code)` inside the method is the reliable way to set the exit code;
-  `-quit` alone returns 0 even after a logged error.
-- Activate the Unity license in batch mode (`-username`/`-password`/`-serial` or a license
-  file) as a separate step before building on a clean runner.
-
-## Addressables content build (when used)
-
-```csharp
-using UnityEditor.AddressableAssets.Settings;
-
-// Build the Addressables content bundles BEFORE the player build, or runtime loads fail.
-public static void BuildContent()
-{
-    AddressableAssetSettings.BuildPlayerContent(out var result);
-    if (!string.IsNullOrEmpty(result.Error))
-        throw new Exception($"Addressables build failed: {result.Error}");
-}
-```
-
-## Gotchas
-
-- `SwitchActiveBuildTarget` can take time and triggers a reimport; do it once per target, not
-  per build.
-- Reading args via `Environment.GetCommandLineArgs()` includes Unity's own flags — match on
-  your custom keys only.
-- A build server needs the platform module installed (e.g. IL2CPP toolchain, Android SDK/NDK)
-  or the build fails late with a toolchain error.

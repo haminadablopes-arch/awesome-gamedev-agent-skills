@@ -1,16 +1,17 @@
 ---
 name: unity-tilemap-2d
 description: >
-  Build and script 2D tilemaps in Unity 6.3 LTS: the Grid + Tilemap components, the Tile Palette,
-  tilemap colliders, rule tiles, and runtime SetTile/GetTile painting. Use when painting tile
-  levels, adding a TilemapCollider2D, using rule or animated tiles, generating tilemaps from
-  code, or when the user mentions Unity tilemap, tile palette, rule tile, or Grid.
+  Build and script 2D tilemaps in Unity 6 (6.3 LTS / 6.6 / 6.7 Ready): the Grid + Tilemap
+  components, the Tile Palette, tilemap colliders, rule tiles, and runtime SetTile/GetTile painting.
+  Use when painting tile levels, adding a TilemapCollider2D, using rule or animated tiles,
+  generating tilemaps from code, or when the user mentions Unity tilemap, tile palette,
+  rule tile, or Grid.
 ---
 
 # Unity 2D Tilemap
 
-Author and script tile-based 2D levels in Unity 6.3 LTS with the `Grid`/`Tilemap` system, the Tile
-Palette, colliders, and runtime painting. Targets **Unity 6.3 LTS (6000.3)**.
+Author and script tile-based 2D levels in Unity 6 with the `Grid`/`Tilemap` system, the Tile
+Palette, colliders, and runtime painting. Targets **Unity 6 (6.3 LTS / 6.6 / 6.7 Ready)**.
 
 > **Package note:** the core Tilemap (`Grid`, `Tilemap`, `Tile`, `TilemapCollider2D`) is
 > built in. **Rule Tiles, Animated Tiles, and Tile Palette brushes live in the separate
@@ -24,8 +25,8 @@ Palette, colliders, and runtime painting. Targets **Unity 6.3 LTS (6000.3)**.
 - Use when scenes contain a `Grid` with `Tilemap` children, or `*.asset` tile/palette files.
 
 **When _not_ to use:** level _design_ practice (pacing, blockout, layout principles) →
-`level-design`. 3D tile/grid placement → Unity's own 3D tooling (ProBuilder / grid brushes; no dedicated skill here). The platformer character that
-moves over the tiles → `platformer` / `unity-physics`.
+`level-design`. 3D tile/grid placement → Unity's own 3D tooling (ProBuilder / grid brushes).
+The platformer character that moves over the tiles → `platformer` / `unity-physics`.
 
 ## Core workflow
 

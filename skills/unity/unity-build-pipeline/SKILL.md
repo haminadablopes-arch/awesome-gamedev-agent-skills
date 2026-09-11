@@ -1,49 +1,59 @@
 ---
 name: unity-build-pipeline
 description: >
-  Build and ship Unity 6.3 LTS players: build settings and scenes, player/quality settings, the
-  IL2CPP vs Mono scripting backend, managed code stripping, scripted BuildPipeline.BuildPlayer,
-  and CI/headless builds. Use when configuring or automating a build, choosing a scripting
-  backend, shrinking build size, or when the user mentions Unity build, player settings,
-  IL2CPP, code stripping, or Addressables.
+  Build and ship Unity 6 (6.3 LTS / 6.6 / 6.7 Ready) players: Build Profiles,
+  scenes, scripting backend (IL2CPP vs Mono), managed code stripping, Content Directories
+  vs AssetBundles (Addressables 4.0+), Build Analysis history, and headless CI builds.
+  Use when configuring player builds, switching build targets, shrinking binary size,
+  packaging Addressables/Content Directories, or running automated CI/CD pipelines.
 ---
 
 # Unity Build Pipeline
 
-Configure, script, and automate Unity 6.3 LTS player builds: scenes, platform target, scripting
-backend, stripping, and headless/CI builds. Targets **Unity 6.3 LTS (6000.3)**.
+Configure, script, and automate Unity 6 player builds: Build Profiles, scenes, platform target,
+scripting backend, stripping levels, Content Directories / Addressables, and CI/headless builds.
+Targets **Unity 6 (6.3 LTS / 6.6 / 6.7 Ready)**.
 
 ## When to use
 
-- Use when setting up Build Settings/Profiles, choosing a platform and scripting backend
-  (Mono vs IL2CPP), reducing build size with managed stripping, scripting a repeatable build
-  with `BuildPipeline.BuildPlayer`, or wiring a CI/headless build.
+- Use when setting up Build Settings or Build Profiles, choosing a platform and scripting backend
+  (Mono vs IL2CPP), reducing build size with managed stripping, scripting repeatable builds
+  with `BuildPipeline.BuildPlayer`, configuring Content Directories vs AssetBundles, or wiring a CI build.
 - Use when the project has `ProjectSettings/EditorBuildSettings.asset` or a CI build script.
 
-**When *not* to use:** authoring a CI service config end-to-end is DevOps; this skill covers
-the Unity-side build API and settings. Console/platform certification specifics are
-platform-NDA territory. Storefront submission → `steam-publish` / `itch-publish`.
+**When *not* to use:** authoring a cloud CI service config end-to-end (GitHub Actions, GitLab CI)
+is DevOps; this skill covers the Unity-side build APIs, settings, and content packaging.
+Storefront submission → `steam-publish` / `itch-publish`.
 
 ## Core workflow
 
-1. **List the scenes to build** (File → Build Profiles/Settings → Scene List, or
-   `EditorBuildSettings.scenes`). Only listed, enabled scenes ship; scene 0 is the start scene.
-2. **Pick the platform target** and switch the active build target if needed
-   (`BuildTarget` / `EditorUserBuildSettings`).
-3. **Choose the scripting backend** (Player Settings): **Mono** (fast iteration, desktop) vs
-   **IL2CPP** (AOT C++; required for many platforms, better perf, harder to reverse). IL2CPP
-   needs the platform's C++ toolchain installed.
-4. **Tune size/perf:** set Managed Stripping Level (Disabled → Minimal → Low → Medium → High)
-   and protect reflection-only code with a `link.xml`. Set Quality Settings per platform.
-5. **Script the build** with `BuildPipeline.BuildPlayer(BuildPlayerOptions)` and **inspect the
-   returned `BuildReport`** — a non-`Succeeded` result must fail your pipeline.
-6. **Run headless** for CI with `-batchmode -quit -executeMethod`, and check the exit code.
-7. **Verify** the actual output runs (launch the player), not just that the build returned
-   without throwing.
+1. **Configure Build Profiles and scenes** (File → Build Profiles, or `EditorBuildSettings.scenes`).
+   Ensure all gameplay and UI scenes are registered; scene 0 is the entry point.
+2. **Pick the platform target** and active backend (`BuildTarget` / `EditorUserBuildSettings`).
+3. **Choose the scripting backend** (Player Settings): **Mono** (fast iteration for desktop/dev) vs
+   **IL2CPP** (AOT C++; required for mobile/consoles, superior performance and code protection).
+4. **Choose Content Distribution Pipeline:**
+   - **Local project content:** use **Content Directories** (Unity 6.6+ / Addressables 4.0+) for
+     zero-compression-overhead fast iteration and direct disk mapping.
+   - **Remote CDN/Patching content:** use **AssetBundles** via Addressables with LZ4/LZMA compression.
+5. **Tune size/perf:** set Managed Stripping Level (Disabled → Low → Medium → High) and protect
+   reflection or JSON serialization types with a `link.xml`.
+6. **Script the build** with `BuildPipeline.BuildPlayer(BuildPlayerOptions)` and verify the
+   returned `BuildReport.summary.result == BuildResult.Succeeded`.
+7. **Inspect build metrics** using the **Build Analysis window** and `Library/BuildHistory/` logs.
+
+## Content Management: AssetBundles vs Content Directories
+
+| Feature | Content Directories (Unity 6.6+ / Addressables 4.0+) | Traditional AssetBundles |
+| :--- | :--- | :--- |
+| **Primary Use Case** | Local content, large PC/Console assets, fast local iteration | Remote CDN delivery, live game patching, DLC |
+| **Build Overhead** | Near zero (direct disk layout / containerization) | High (requires serialization and archive compression) |
+| **Memory Footprint** | Direct streaming from storage | Archive header overhead + decompressed blocks |
+| **Addressables Integration** | Default local group schema | Default remote group schema |
 
 ## Patterns
 
-### 1. Scripted build with a result check
+### 1. Scripted build with BuildReport validation
 
 ```csharp
 using UnityEditor;
@@ -52,71 +62,70 @@ using UnityEngine;
 
 public static class BuildScript
 {
-    [MenuItem("Build/Windows x64")]
+    [MenuItem("Build/Windows x64 Release")]
     public static void BuildWindows()
     {
         var options = new BuildPlayerOptions
         {
-            scenes = new[] { "Assets/Scenes/Main.unity", "Assets/Scenes/Level1.unity" },
+            scenes = new[] { "Assets/Scenes/Boot.unity", "Assets/Scenes/MainMenu.unity", "Assets/Scenes/Game.unity" },
             locationPathName = "Builds/Windows/Game.exe",
             target = BuildTarget.StandaloneWindows64,
-            options = BuildOptions.None,            // add BuildOptions.Development for a dev build
+            options = BuildOptions.None, // Use BuildOptions.Development for profiling builds
         };
 
         BuildReport report = BuildPipeline.BuildPlayer(options);
         BuildSummary summary = report.summary;
 
         if (summary.result != BuildResult.Succeeded)
-            throw new System.Exception($"Build failed: {summary.totalErrors} errors");
-        Debug.Log($"Build OK: {summary.totalSize} bytes in {summary.totalTime}");
+            throw new System.Exception($"Build failed with {summary.totalErrors} errors!");
+
+        Debug.Log($"[Build] Success: {summary.totalSize} bytes in {summary.totalTime.TotalSeconds:F1}s");
     }
 }
 ```
 
-### 2. Headless / CI invocation
+### 2. Headless CI invocation
 
 ```bash
-# Exit code is 0 on success; -quit ensures the editor closes; -nographics for build servers.
+# Unity headless execution for CI runners
 Unity -batchmode -quit -nographics \
-  -projectPath "/path/to/Project" \
+  -projectPath "/workspace/MyProject" \
   -executeMethod BuildScript.BuildWindows \
   -logFile -
 ```
 
-### 3. Protect stripped code with `link.xml`
+### 3. Managed code stripping protection (`link.xml`)
 
 ```xml
-<!-- Assets/link.xml — keep types the linker can't see are used (reflection, JSON, plugins). -->
+<!-- Assets/link.xml — prevents the linker from stripping reflection/data models -->
 <linker>
   <assembly fullname="MyGameRuntime" preserve="all"/>
+  <assembly fullname="UnityEngine.CoreModule">
+    <type fullname="UnityEngine.GameObject" preserve="all"/>
+  </assembly>
 </linker>
 ```
 
 ## Pitfalls
 
-- **A scene loads in the Editor but is missing in the build** — it isn't in the Build Settings
-  scene list (or is disabled). `SceneManager.LoadScene` only sees listed scenes.
-- **IL2CPP build fails on a fresh machine** — the platform C++ toolchain (e.g. Windows build
-  tools, Android NDK) isn't installed. Mono has no such requirement.
-- **`MissingMethodException`/`TypeLoadException` only in the build** — managed stripping removed
-  reflection-only code. Lower the stripping level or add a `link.xml` preserve entry.
-- **Treating "BuildPlayer returned" as success** — always check `BuildReport.summary.result`;
-  it can return with errors.
-- **Addressables content is stale/missing** — Addressables (`com.unity.addressables`) need a
-  *separate* content build (Build → Addressables) and a profile pointing at the right load
-  path; a player build alone doesn't rebuild them.
-- **Shipping a Development build** — `BuildOptions.Development` enables the profiler/debugging
-  and is slower; use `BuildOptions.None` for release.
+- **Scene missing in standalone player** — scene was created but not registered in Build Settings
+  or the active Build Profile.
+- **IL2CPP toolchain missing on clean runner** — IL2CPP requires the platform C++ compiler (Visual Studio C++
+  build tools, Android NDK, Xcode toolchain). Mono runs without C++ compiler toolchains.
+- **`MissingMethodException` after enabling High Stripping** — Managed Stripping removed classes
+  invoked via reflection or serialization. Add an entry to `link.xml`.
+- **Addressables / Content Directories missing from build output** — Content groups must be built
+  (`AddressableAssetSettings.BuildPlayerContent()`) prior to launching the player build.
+- **Ignoring `BuildReport.summary.result`** — `BuildPlayer` can complete without throwing an unhandled C#
+  exception while still failing compilation or packaging. Always check `summary.result == BuildResult.Succeeded`.
 
 ## References
 
-- For a complete **multi-platform CI build script** (target switching, version stamping,
-  argument parsing, exit codes) and an Addressables content-build call, read
-  `references/ci-build-script.md`.
-- Primary docs: `ScriptReference/BuildPipeline.BuildPlayer`, Unity Manual build sections
-  (player settings, managed code stripping).
+- For complete multi-platform CI scripts, argument parsing, version stamping, and automated
+  Addressables / Content Directories builds, read `references/ci-build-script.md`.
+- Primary docs: Unity Manual "Build Profiles", "Managed code stripping", and "Addressable Asset System".
 
 ## Related skills
 
-- `steam-publish` / `itch-publish` — distributing the player you just built.
-- `unity-csharp-scripting` — editor scripting conventions used by build scripts.
+- `steam-publish` / `itch-publish` — distributing the exported player packages.
+- `unity-csharp-scripting` — script compilation, assembly definitions, and editor scripting.
