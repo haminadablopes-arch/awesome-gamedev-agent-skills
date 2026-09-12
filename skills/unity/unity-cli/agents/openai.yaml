@@ -1,0 +1,4 @@
+interface:
+  display_name: "Unity CLI & Automation"
+  short_description: "Run Unity 6 batchmode, tests, and CLI builds"
+  default_prompt: "Use $unity-cli to automate or test this Unity project from the command line."

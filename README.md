@@ -7,16 +7,16 @@
        alt="awesome-gamedev-agent-skills — game-dev skills for AI coding agents. 67 skills and a router across 10 engines, including an art-direction and asset-production workflow.">
 </p>
 
-**73 game-dev skills for your AI coding agent — install once, and a router loads the
+**74 game-dev skills for your AI coding agent — install once, and a router loads the
 right skill for whatever you're building.**
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-73%20%2B%20router-brightgreen)](skills/)
+[![Skills](https://img.shields.io/badge/skills-74%20%2B%20router-brightgreen)](skills/)
 [![Format](https://img.shields.io/badge/format-Agent%20Skills-informational)](docs/SKILL-FORMAT.md)
 [![Last commit](https://img.shields.io/github/last-commit/gamedev-skills/awesome-gamedev-agent-skills)](https://github.com/gamedev-skills/awesome-gamedev-agent-skills/commits/main)
 
 [Agent Skills](docs/SKILL-FORMAT.md) are small capability files an AI agent loads only when it
-needs them. This repo gives your agent **73 game-dev skills** and a **router** that picks the
+needs them. This repo gives your agent **74 game-dev skills** and a **router** that picks the
 right ones for you. You describe what you're building; the agent loads the matching engine and
 task skills before it writes code.
 
@@ -40,7 +40,7 @@ task skills before it writes code.
 ## Quick start
 
 **One command, any agent.** The [`skills`](https://www.npmjs.com/package/skills) CLI detects the
-coding agent you already use and installs the router plus all 73 skills into the right place:
+coding agent you already use and installs the router plus all 74 skills into the right place:
 
 ```bash
 npx skills add gamedev-skills/awesome-gamedev-agent-skills
@@ -117,7 +117,7 @@ engine), while disciplines, genres, and workflows are additive on top.
 
 ## Catalog
 
-73 skills across 8 categories — each links to its `SKILL.md` below.
+74 skills across 8 categories — each links to its `SKILL.md` below.
 
 ### Engines
 
@@ -141,7 +141,7 @@ engine), while disciplines, genres, and workflows are additive on top.
 | [`godot-export`](skills/godot/godot-export/SKILL.md) | Export presets/templates, platform builds, headless CLI export |
 | [`godot-csharp`](skills/godot/godot-csharp/SKILL.md) | C#/.NET in Godot: bindings, signals as events, GDScript interop |
 
-#### Unity — 8 ([`skills/unity/`](skills/unity/)) · Unity 6.3 LTS (6000.3)
+#### Unity — 9 ([`skills/unity/`](skills/unity/)) · Unity 6.3 LTS (6000.3)
 
 | Skill | Scope |
 |-------|-------|
@@ -153,6 +153,7 @@ engine), while disciplines, genres, and workflows are additive on top.
 | [`unity-tilemap-2d`](skills/unity/unity-tilemap-2d/SKILL.md) | 2D Tilemap/Tile Palette, rule tiles, tilemap colliders |
 | [`unity-navmesh`](skills/unity/unity-navmesh/SKILL.md) | AI navigation: NavMesh bake, `NavMeshAgent` |
 | [`unity-build-pipeline`](skills/unity/unity-build-pipeline/SKILL.md) | Build/player/quality settings, code stripping, Addressables |
+| [`unity-cli`](skills/unity/unity-cli/SKILL.md) | Batchmode/headless runs, UTF tests from CLI, Hub CLI, UPM/OpenUPM |
 
 #### Unreal — 6 ([`skills/unreal/`](skills/unreal/)) · Unreal Engine 5.8
 
@@ -311,7 +312,7 @@ func _physics_process(delta: float) -> void:
 ## Repository layout
 
 ```
-skills/        73 specialized skills, grouped by engine / discipline / genre / workflow
+skills/        74 specialized skills, grouped by engine / discipline / genre / workflow
 router/        the master router skill (+ references/)
 docs/          authoring standard, installation, compatibility
 templates/     SKILL.md template

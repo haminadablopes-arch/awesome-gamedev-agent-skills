@@ -35,6 +35,7 @@
         "./skills/unity/unity-tilemap-2d",
         "./skills/unity/unity-navmesh",
         "./skills/unity/unity-build-pipeline",
+        "./skills/unity/unity-cli",
         "./skills/unreal/unreal-blueprints",
         "./skills/unreal/unreal-cpp-gameplay",
         "./skills/unreal/unreal-enhanced-input",
@@ -132,7 +133,8 @@
         "./skills/unity/unity-scriptableobjects",
         "./skills/unity/unity-tilemap-2d",
         "./skills/unity/unity-navmesh",
-        "./skills/unity/unity-build-pipeline"
+        "./skills/unity/unity-build-pipeline",
+        "./skills/unity/unity-cli"
       ]
     },
     {
