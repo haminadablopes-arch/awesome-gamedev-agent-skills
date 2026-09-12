@@ -30,7 +30,7 @@ is the dispatcher). Copy it in alongside the others so the agent can route reque
 
 The [`skills` CLI](https://www.npmjs.com/package/skills) is the package manager for the Agent
 Skills ecosystem. It detects the agents installed on your machine and copies the skills (the
-router plus all 68) into each one's skills directory — no clone required:
+router plus all 74) into each one's skills directory — no clone required:
 
 ```bash
 # install into whatever agent(s) you have
@@ -59,7 +59,7 @@ so you can install it without cloning or copying files. Add the marketplace once
 claude plugin marketplace add gamedev-skills/awesome-gamedev-agent-skills
 ```
 
-Easiest — install the router and all 68 skills in one command:
+Easiest — install the router and all 74 skills in one command:
 
 ```bash
 claude plugin install gamedev@awesome-gamedev-agent-skills
@@ -136,6 +136,45 @@ Gemini CLI, and Copilot.
 
 Skills trigger automatically by description, or explicitly with `/skill:<name>` when
 `skills.enableSkillCommands` is on.
+
+## Antigravity (Google) — CLI and App
+
+Antigravity implements the same open Agent Skills standard, so every `SKILL.md` in this repo
+loads **unmodified** — no conversion, no Google-specific frontmatter.
+
+```bash
+# per-workspace (recommended: the skills travel with the repo)
+mkdir -p .agents/skills
+cp -R router .agents/skills/router          # the dispatcher — install it too
+find skills -name SKILL.md -type f -exec dirname {} \; | while read -r d; do
+  cp -R "$d" .agents/skills/
+done
+```
+
+For **all** workspaces, copy the same folders into the global path instead —
+`~/.gemini/config/skills/` (Antigravity CLI) or `~/.gemini/antigravity/skills/` (Antigravity App).
+Both the CLI and the App read the workspace path `.agents/skills/`, so a single per-project copy
+serves the two at once (older builds also still read `.agent/skills/`, singular).
+
+The universal installer works too:
+
+```bash
+npx skills add gamedev-skills/awesome-gamedev-agent-skills -a antigravity
+```
+
+If your `skills` CLI version does not know the `antigravity` target yet, install to the shared
+convention instead — it is the exact same directory Antigravity reads:
+
+```bash
+npx skills add gamedev-skills/awesome-gamedev-agent-skills -a codex   # writes .agents/skills/
+```
+
+- **Triggering:** automatic, by `description` match (progressive disclosure). You can also name a
+  skill in the prompt — *"use `unity-cli` to run the EditMode tests"* — to force activation.
+- **Scripts:** the bundled `scripts/*.sh` are executed by the agent, not by Antigravity itself;
+  they only need `bash` and `python3` on your PATH.
+- **Verify:** start a new conversation and ask something routable, e.g. *"validate that this Unity
+  project compiles from the terminal"* — the agent should load `router` and then `unity-cli`.
 
 ## Gemini CLI & Codex CLI (shared location)
 

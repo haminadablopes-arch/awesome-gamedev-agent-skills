@@ -60,7 +60,7 @@ own skills documentation.
 | **OpenAI Codex** | `.agents/skills/` | `$skill` · `/skills` · implicit | [docs](https://developers.openai.com/codex/skills) |
 | **Gemini CLI** | `.agents/skills/` or `.gemini/skills/` | activation + consent · `/skills` | [docs](https://geminicli.com/docs/cli/skills/) |
 | **GitHub Copilot** | `.agents/skills/` | auto by description | [docs](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills) |
-| **Antigravity** (Google) | `.agents/skills/` (default; also global `~/.gemini/config/skills/`) | auto by description | [docs](https://antigravity.google/docs/skills) |
+| **Antigravity** (Google) — CLI & App | `.agents/skills/` (default; legacy `.agent/skills/`) · global `~/.gemini/config/skills/` (CLI) or `~/.gemini/antigravity/skills/` (App) | auto by description · name the skill to force it | [docs](https://antigravity.google/docs/skills) |
 | **Kiro** | `.kiro/skills/` (+ `~/.kiro/skills/`) | auto by description · `/skill-name` | [docs](https://kiro.dev/docs/cli/skills/) |
 | **Oh My Pi** (omp) | `.omp/skills/` (project; walks up) · `~/.omp/agent/skills/` (global) | auto by description · `/skill:<name>` | [docs](https://github.com/can1357/oh-my-pi/blob/main/docs/skills.md) |
 | **Others** (VS Code, Roo Code, Junie, Trae, Factory, Tabnine, OpenCode, Goose, …) | see each tool | varies | [client list](https://agentskills.io/clients) |
@@ -75,6 +75,12 @@ automatically, so you rarely need to track these by hand.
 
 > **Cline note.** Skills are an experimental feature — enable them under
 > **Settings → Features → Enable Skills** before they appear.
+
+> **Antigravity note.** Antigravity adopted the same open Agent Skills standard, so the files in
+> this repo load unmodified in both the CLI and the App. The Antigravity CLI and App share the
+> workspace path `.agents/skills/`, so one per-project copy serves both; only the *global* path
+> differs between them. Step-by-step commands are in
+> [`INSTALLATION.md`](INSTALLATION.md#antigravity-google--cli-and-app).
 
 ## Compatibility boundary
 
